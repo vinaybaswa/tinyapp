@@ -38,3 +38,8 @@ app.get("/set", (req, res) => {
   let templateVars = { urls: urlDatabase };
   res.render("urls_index", templateVars);
  });
+
+ app.get("/urls/:shortURL", (req, res) => {
+  let templateVars = { shortURL: req.params.shortURL, longURL: "http://www.lighthouselabs.ca" };
+  res.render("urls_show", templateVars);
+});
