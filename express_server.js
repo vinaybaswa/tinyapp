@@ -78,11 +78,11 @@ app.post("/urls/:shortURL/delete", (req, res) => {
 //Edit URL
 app.post("/urls/:shortURL", (req, res) => {
   const shortURL = req.params.shortURL;
-  let templateVars = { shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL] };
-  console.log("shortURL", shortURL)
-  console.log(req.body.longURL)
-  urlDatabase[shortURL] = req.body.longURL
-  console.log(urlDatabase)
+  const newLongURL = req.body.longURL
+  // console.log("shortURL", shortURL)
+  // console.log("NewLongURL", newLongURL)
+  urlDatabase[shortURL] = newLongURL;
+  //console.log(urlDatabase)
   res.redirect("/urls");
 });
 
