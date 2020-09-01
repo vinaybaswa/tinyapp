@@ -57,3 +57,13 @@ app.post("/urls", (req, res) => {
   res.redirect(`/urls/${Id}`);
   //console.log(urlDatabase)
 });
+
+app.get("/u/:shortURL", (req, res) => {
+  const longURL = urlDatabase[req.params.shortURL];
+  const shortURL = req.params.shortURL;
+  if (Object.keys(urlDatabase).includes(shortURL)) {
+    res.redirect(longURL);
+  } else {
+    res.redirect("urls_index", { urls: urlDatabase });
+  }
+});
