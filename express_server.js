@@ -42,7 +42,8 @@ app.get("/urls/new", (req, res) => {
 });
 
 app.get("/urls/:shortURL", (req, res) => {
-  let templateVars = { shortURL: req.params.shortURL, longURL: "http://www.lighthouselabs.ca" };
+  const shortURL = req.params.shortURL;
+  let templateVars = { shortURL: req.params.shortURL, longURL: urlDatabase[shortURL] };
   res.render("urls_show", templateVars);
 });
 
