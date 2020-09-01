@@ -5,7 +5,7 @@ const PORT = 8080; // default port 8080
 app.set("view engine", "ejs");
 
 function generateRandomString() {
-  Math.random().toString(36).substring(2,8)
+  return Math.random().toString(36).substring(2,8)
 }
 
 const urlDatabase = {
@@ -43,12 +43,17 @@ app.get("/urls/new", (req, res) => {
 
 app.get("/urls/:shortURL", (req, res) => {
   const shortURL = req.params.shortURL;
-  let templateVars = { shortURL: req.params.shortURL, longURL: urlDatabase[shortURL] };
+  let templateVars = { shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL] };
   res.render("urls_show", templateVars);
 });
 
 app.post("/urls", (req, res) => {
-  console.log(req.body);  // Log the POST request body to the console
-  res.send("Ok");         // Respond with 'Ok' (we will replace this)
+  const Id = generateRandomString();
+  if (req.body.longURL.match(/^(https:\/\/|http:\/\/)/)) {
+    urlDatabase[Id] = req.body.longURL;
+  } else {
+    urlDatabase[Id] = "http://" + req.body.longURL;
+  }
+  res.redirect(`/urls/${Id}`);
+  //console.log(urlDatabase)
 });
-
