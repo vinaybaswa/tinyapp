@@ -1,11 +1,13 @@
 const express = require("express");
+const morgan = require('morgan')
 const app = express();
 const PORT = 8080; // default port 8080
 
 app.set("view engine", "ejs");
+app.use(morgan(':method :status :response-time ms'));
 
 function generateRandomString() {
-  return Math.random().toString(36).substring(2,8)
+  return Math.random().toString(36).substring(2, 8)
 }
 
 const urlDatabase = {
@@ -14,14 +16,10 @@ const urlDatabase = {
 };
 
 const bodyParser = require("body-parser");
-app.use(bodyParser.urlencoded({extended: true}));
+app.use(bodyParser.urlencoded({ extended: true }));
 
 app.get("/", (req, res) => {
   res.send("Hello!");
-});
-
-app.listen(PORT, () => {
-  console.log(`Example app listening on port ${PORT}!`);
 });
 
 app.get("/urls.json", (req, res) => {
@@ -66,4 +64,15 @@ app.get("/u/:shortURL", (req, res) => {
   } else {
     res.redirect("urls_index", { urls: urlDatabase });
   }
+});
+
+app.post("/urls/:shortURL/delete", (req, res) => {
+  delete urlDatabase[req.params.shortURL]
+  console.log("url database", urlDatabase)
+  res.redirect("/urls");
+  //console.log(urlDatabase)
+});
+
+app.listen(PORT, () => {
+  console.log(`Example app listening on port ${PORT}!`);
 });
