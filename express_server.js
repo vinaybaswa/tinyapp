@@ -45,6 +45,8 @@ app.get("/urls/:shortURL", (req, res) => {
   res.render("urls_show", templateVars);
 });
 
+
+//Add new URL 
 app.post("/urls", (req, res) => {
   const Id = generateRandomString();
   if (req.body.longURL.match(/^(https:\/\/|http:\/\/)/)) {
@@ -66,13 +68,28 @@ app.get("/u/:shortURL", (req, res) => {
   }
 });
 
+//Delete URL
 app.post("/urls/:shortURL/delete", (req, res) => {
   delete urlDatabase[req.params.shortURL]
-  console.log("url database", urlDatabase)
+  //console.log("url database", urlDatabase)
   res.redirect("/urls");
-  //console.log(urlDatabase)
 });
 
+//Edit URL
+app.post("/urls/:shortURL", (req, res) => {
+  const shortURL = req.params.shortURL;
+  let templateVars = { shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL] };
+  console.log("shortURL", shortURL)
+  console.log(req.body.longURL)
+  urlDatabase[shortURL] = req.body.longURL
+  console.log(urlDatabase)
+  res.redirect("/urls");
+});
+
+ 
+
+
+
 app.listen(PORT, () => {
-  console.log(`Example app listening on port ${PORT}!`);
+  console.log(`app listening on port ${PORT}!`);
 });
