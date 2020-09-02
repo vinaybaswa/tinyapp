@@ -10,7 +10,7 @@ app.use(morgan(':method :status :response-time ms'));
 const PORT = 8080; // default port 8080
 
 const bodyParser = require("body-parser");
-app.use(bodyParser.urlencoded({ extended: true }));
+app.use(bodyParser.urlencoded({ extended: false }));
 
 const urlDatabase = {
   "b2xVn2": "http://www.lighthouselabs.ca",
@@ -32,6 +32,18 @@ app.get("/urls.json", (req, res) => {
 app.get("/hello", (req, res) => {
   res.send("<html><body>Hello <b>World</b></body></html>\n");
 });
+
+//Register
+app.get("/register", (req, res) => {
+  let templateVars = { username: req.cookies["username"], };
+  res.render("urls_reg", templateVars);
+});
+
+// app.post("/register", (req, res) =>{
+//   const email = req.body.email;
+//   const password = req.body.password;
+//   res.cookie("email", email).redirect("/urls");
+// });
 
 // Login
 app.post("/login", (req, res) =>{
@@ -101,6 +113,4 @@ app.post("/urls/:shortURL", (req, res) => {
   res.redirect("/urls");
 });
 
-app.listen(PORT, () => {
-  console.log(`TinyApp listening on port ${PORT}!`);
-});
+app.listen(PORT, () => { console.log(`TinyApp listening on port ${PORT}!`)});
