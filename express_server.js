@@ -36,8 +36,12 @@ app.get("/hello", (req, res) => {
 // Login
 app.post("/login", (req, res) =>{
   const username = req.body.username;
-  //console.log(username)
   res.cookie("username", username).redirect("/urls");
+});
+
+//Logout
+app.post("/logout", (req, res) =>{
+  res.clearCookie("username").redirect("/urls");
 });
 
 app.get("/urls", (req, res) => {
@@ -71,7 +75,6 @@ app.post("/urls", (req, res) => {
     urlDatabase[Id] = "http://" + req.body.longURL;
   }
   res.redirect(`/urls/${Id}`);
-  //console.log(urlDatabase)
 });
 
 app.get("/u/:shortURL", (req, res) => {
@@ -87,7 +90,6 @@ app.get("/u/:shortURL", (req, res) => {
 //Delete URL
 app.post("/urls/:shortURL/delete", (req, res) => {
   delete urlDatabase[req.params.shortURL]
-  //console.log("url database", urlDatabase)
   res.redirect("/urls");
 });
 
@@ -95,17 +97,10 @@ app.post("/urls/:shortURL/delete", (req, res) => {
 app.post("/urls/:shortURL", (req, res) => {
   const shortURL = req.params.shortURL;
   const newLongURL = req.body.longURL
-  // console.log("shortURL", shortURL)
-  // console.log("NewLongURL", newLongURL)
   urlDatabase[shortURL] = newLongURL;
-  //console.log(urlDatabase)
   res.redirect("/urls");
 });
 
- 
-
-
-
 app.listen(PORT, () => {
-  console.log(`app listening on port ${PORT}!`);
+  console.log(`TinyApp listening on port ${PORT}!`);
 });
