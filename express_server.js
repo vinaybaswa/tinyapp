@@ -1,79 +1,118 @@
 const express = require("express");
 const morgan = require('morgan');
-var cookieParser = require('cookie-parser');
+const bodyParser = require("body-parser");
+const cookieParser = require('cookie-parser');
 const app = express();
 
 app.set("view engine", "ejs");
 app.use(cookieParser());
 app.use(morgan(':method :status :response-time ms'));
+app.use(bodyParser.urlencoded({ extended: false }));
 
 const PORT = 8080; // default port 8080
 
-const bodyParser = require("body-parser");
-app.use(bodyParser.urlencoded({ extended: false }));
 
+// Data
 const urlDatabase = {
   "b2xVn2": "http://www.lighthouselabs.ca",
   "9sm5xK": "http://www.google.com"
 };
 
+const users = {
+  "userRandomID": {
+    id: "userRandomID",
+    email: "user@example.com",
+    password: "purple-monkey-dinosaur"
+  },
+  "user2RandomID": {
+    id: "user2RandomID",
+    email: "user2@example.com",
+    password: "dishwasher-funk"
+  }
+}
+
+
+
+//Fuctions
 function generateRandomString() {
   return Math.random().toString(36).substring(2, 8)
 }
 
-app.get("/", (req, res) => {
-  res.send("Hello!");
-});
-
-app.get("/urls.json", (req, res) => {
-  res.json(urlDatabase);
-});
-
-app.get("/hello", (req, res) => {
-  res.send("<html><body>Hello <b>World</b></body></html>\n");
-});
-
-//Register
+//register
 app.get("/register", (req, res) => {
-  let templateVars = { username: req.cookies["username"], };
-  res.render("urls_reg", templateVars);
+  let templateVars = { user: users[req.cookies.user_id] };
+  res.render("register", templateVars);
 });
 
-// app.post("/register", (req, res) =>{
-//   const email = req.body.email;
-//   const password = req.body.password;
-//   res.cookie("email", email).redirect("/urls");
-// });
+const duplicateCheck = (email, users) => {
+  console.log("email", email)
+  for (const user in users) {
+    console.log("user email", users[user].email)
+    if (users[user].email === email) {
+      return true;
+    }
+  }
+  return false;
+}
 
-// Login
-app.post("/login", (req, res) =>{
-  const username = req.body.username;
-  res.cookie("username", username).redirect("/urls");
+app.post("/register", (req, res) => {
+
+  if (duplicateCheck(req.body.email, users)) {
+    console.log('hello')
+    res.status(400).end();
+  } else {
+    const id = generateRandomString();
+    const email = req.body.email;
+    const password = req.body.password;
+    users[id] = { id, email, password };
+
+    // console.log(users[id].email)
+    res.cookie("user_id", id).redirect("/urls");
+  }
+
+  console.log(users)
+
+});
+
+console.log(users)
+
+app.get("/login", (req, res) => {
+  let templateVars = { user: users[req.cookies.user_id] };
+  res.render("login", templateVars);
+});
+
+// Login / Authentication
+app.post("/login", (req, res) => {
+  console.log("users[req.cookies.user_id", users[req.cookies.user_id]);
+  let templateVars = { user: users[req.cookies.user_id] };
+  res.cookie("user_id", templateVars).redirect("/urls");
 });
 
 //Logout
-app.post("/logout", (req, res) =>{
-  res.clearCookie("username").redirect("/urls");
+app.post("/logout", (req, res) => {
+  res.clearCookie("user_id").redirect("/urls");
 });
 
 app.get("/urls", (req, res) => {
-  let templateVars = { 
-    username: req.cookies["username"],
-    urls: urlDatabase };
+  let templateVars = {
+    user: users[req.cookies.user_id],
+    urls: urlDatabase
+  };
   res.render("urls_index", templateVars);
 });
 
 app.get("/urls/new", (req, res) => {
-  let templateVars = { username: req.cookies["username"] };
+  let templateVars = { user: users[req.cookies.user_id] };
   res.render("urls_new", templateVars);
 });
 
 app.get("/urls/:shortURL", (req, res) => {
   const shortURL = req.params.shortURL;
-  let templateVars = { 
-    username: req.cookies["username"],
-    shortURL: req.params.shortURL, 
-    longURL: urlDatabase[req.params.shortURL] };
+  let templateVars = {
+    user: users[req.cookies.user_id],
+    shortURL: req.params.shortURL,
+    longURL: urlDatabase[req.params.shortURL]
+  };
   res.render("urls_show", templateVars);
 });
 
@@ -113,4 +152,4 @@ app.post("/urls/:shortURL", (req, res) => {
   res.redirect("/urls");
 });
 
-app.listen(PORT, () => { console.log(`TinyApp listening on port ${PORT}!`)});
+app.listen(PORT, () => { console.log(`TinyApp listening on port ${PORT}!`) });
