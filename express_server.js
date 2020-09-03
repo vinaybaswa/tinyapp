@@ -2,12 +2,18 @@ const express = require("express");
 const morgan = require('morgan');
 const bodyParser = require("body-parser");
 const cookieParser = require('cookie-parser');
+const cookieSession = require('cookie-session')
+
 const app = express();
 
 app.set("view engine", "ejs");
 app.use(cookieParser());
 app.use(morgan(':method :status :response-time ms'));
 app.use(bodyParser.urlencoded({ extended: false }));
+app.use(cookieSession({
+  name: 'session',
+  keys: ['iamasuperkeyandilikesongs', 'pouet pouet yes spaces are okay why not']
+}));
 
 const PORT = 8080; // default port 8080
 
