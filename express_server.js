@@ -1,4 +1,5 @@
 const morgan = require('morgan');
+const bcrypt = require('bcrypt');
 const express = require("express");
 const bodyParser = require("body-parser");
 const cookieParser = require('cookie-parser');
@@ -15,13 +16,15 @@ app.use(cookieSession({
 }));
 
 const PORT = 8080; // default port 8080
+const salt = bcrypt.genSaltSync(10);
 
-// Data
+//URLs Data
 const urlDatabase = {
   "b2xVn2": { longURL: "http://www.lighthouselabs.ca", userID: "userRandomID" },
   "9sm5xK": { longURL: "http://www.google.com", userID: "user2RandomID" }
 };
 
+//Users Data
 const users = {
   "userRandomID": {
     id: "userRandomID",
@@ -76,8 +79,9 @@ app.post("/register", (req, res) => {
   }
   const id = randomString();
   const email = req.body.email;
-  const password = req.body.password;
+  const password = bcrypt.hashSync(req.body.password, salt);
   users[id] = { id, email, password };
+  console.log(users)
   res.cookie("user_id", id).redirect("/urls");
 });
 
@@ -94,7 +98,7 @@ app.post("/login", (req, res) => {
   for (const user in users) {
     if (users[user].email === email) {
       userid = users[user].id;
-      if (users[userid].password === password) {
+      if (bcrypt.compareSync(password, users[user].password)) {
         return res.cookie("user_id", userid).redirect("/urls");
       } else {
         return res.status(403).send("Wrong Password");

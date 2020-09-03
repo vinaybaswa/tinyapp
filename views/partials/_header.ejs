@@ -20,7 +20,7 @@
         <button type="submit" class="btn btn-primary">Login</button>
       </form>
       <% } else { %>
-      <p>Hello: <%= user.email %></p>
+      <p>Hello <%= user.email %></p>
       <form action="/logout" method="POST" style="margin-right: 1em;">
         <button class="btn btn-primary" type="submit">Logout</button>
       </form>
