@@ -1,15 +1,14 @@
-const express = require("express");
 const morgan = require('morgan');
+const express = require("express");
 const bodyParser = require("body-parser");
 const cookieParser = require('cookie-parser');
 const cookieSession = require('cookie-session')
 
 const app = express();
-
-app.set("view engine", "ejs");
 app.use(cookieParser());
+app.set("view engine", "ejs");
+app.use(bodyParser.urlencoded({ extended: true }));
 app.use(morgan(':method :status :response-time ms'));
-app.use(bodyParser.urlencoded({ extended: false }));
 app.use(cookieSession({
   name: 'session',
   keys: ['iamasuperkeyandilikesongs', 'pouet pouet yes spaces are okay why not']
@@ -107,6 +106,9 @@ app.get("/urls", (req, res) => {
 });
 
 app.get("/urls/new", (req, res) => {
+  if (!req.cookies.user_id) {
+    return res.redirect("/urls");
+  }
   let templateVars = { user: users[req.cookies.user_id] };
   res.render("urls_new", templateVars);
 });
