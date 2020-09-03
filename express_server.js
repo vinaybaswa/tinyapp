@@ -2,7 +2,7 @@ const morgan = require('morgan');
 const express = require("express");
 const bodyParser = require("body-parser");
 const cookieParser = require('cookie-parser');
-const cookieSession = require('cookie-session')
+const cookieSession = require('cookie-session');
 
 const app = express();
 app.use(cookieParser());
@@ -74,12 +74,10 @@ app.post("/register", (req, res) => {
   if (checkIfUserExist(req.body.email, users)) {
     return res.status(400).send("User already registered, try to login");
   }
-
   const id = randomString();
   const email = req.body.email;
   const password = req.body.password;
   users[id] = { id, email, password };
-
   res.cookie("user_id", id).redirect("/urls");
 });
 
@@ -92,12 +90,12 @@ app.get("/login", (req, res) => {
 app.post("/login", (req, res) => {
   const email = req.body.email;
   const password = req.body.password;
-  let id = "";
+  let userid = "";
   for (const user in users) {
     if (users[user].email === email) {
-      id = users[user].id;
-      if (users[id].password === password) {
-        return res.cookie("user_id", id).redirect("/urls");
+      userid = users[user].id;
+      if (users[userid].password === password) {
+        return res.cookie("user_id", userid).redirect("/urls");
       } else {
         return res.status(403).send("Wrong Password");
       }
@@ -112,20 +110,11 @@ app.post("/logout", (req, res) => {
 });
 
 app.get("/urls", (req, res) => {
-  const id = req.cookies.user_id;
   let templateVars = {
     user: users[req.cookies.user_id],
-    urls: urlsForUser(id)
+    urls: urlsForUser(req.cookies.user_id)
   };
   res.render("urls_index", templateVars);
-    // if (!req.cookies.user_id) {
-  //   const login = "loginLink";
-  //   const loginLink = login.link("http://localhost:8080/login");
-  //   const register = "registerLink";
-  //   const registerLink = register.link("http://localhost:8080/register");
-    
-    
-  //   return res.send(`Please login at ${loginLink} or at register ${registerLink}`);
 });
 
 app.get("/urls/new", (req, res) => {
@@ -137,12 +126,19 @@ app.get("/urls/new", (req, res) => {
 });
 
 app.get("/urls/:shortURL", (req, res) => {
+  if (!req.cookies.user_id) {
+    return res.redirect("/urls");
+  }
   let templateVars = {
     user: users[req.cookies.user_id],
+    userID: urlDatabase[req.params.shortURL].userID,
+    urls: urlsForUser(req.cookies.user_id),
     shortURL: req.params.shortURL,
     longURL: urlDatabase[req.params.shortURL].longURL
   };
-  console.log(urlDatabase[req.params.shortURL].longURL)
+  // console.log(templateVars.user.id)
+  // console.log(templateVars.userID)
+  //console.log(urlDatabase[req.params.shortURL].userID)
   res.render("urls_show", templateVars);
 });
 
@@ -159,8 +155,9 @@ app.post("/urls", (req, res) => {
 });
 
 app.get("/u/:shortURL", (req, res) => {
-  const longURL = urlDatabase[req.params.shortURL].longURL;
+
   const shortURL = req.params.shortURL;
+  const longURL = urlDatabase[shortURL].longURL;
   if (Object.keys(urlDatabase).includes(shortURL)) {
     res.redirect(longURL);
   } else {
@@ -170,6 +167,11 @@ app.get("/u/:shortURL", (req, res) => {
 
 //Delete URL
 app.post("/urls/:shortURL/delete", (req, res) => {
+  const userid =  users[req.cookies.user_id].id;
+  const userID = urlDatabase[req.params.shortURL].userID;
+  if (!userid  || userid !== userID) {
+    return res.redirect("/urls");
+  }
   delete urlDatabase[req.params.shortURL];
   res.redirect("/urls");
 });
@@ -186,4 +188,4 @@ app.listen(PORT, () => {
   console.log(`TinyApp listening on port ${PORT}!`);
 });
 
-console.log(urlDatabase)
+//console.log(urlDatabase)
