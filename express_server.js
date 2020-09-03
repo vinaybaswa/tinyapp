@@ -18,8 +18,8 @@ const PORT = 8080; // default port 8080
 
 // Data
 const urlDatabase = {
-  "b2xVn2": "http://www.lighthouselabs.ca",
-  "9sm5xK": "http://www.google.com"
+  "b2xVn2": { longURL: "http://www.lighthouselabs.ca", userID: "userRandomID" },
+  "9sm5xK": { longURL: "http://www.google.com", userID: "user2RandomID" }
 };
 
 const users = {
@@ -98,11 +98,23 @@ app.post("/logout", (req, res) => {
 });
 
 app.get("/urls", (req, res) => {
+  //  if (!req.cookies.user_id) {
+  //   return res.redirect("/urls");
+  // }
+
   let templateVars = {
     user: users[req.cookies.user_id],
     urls: urlDatabase
   };
   res.render("urls_index", templateVars);
+    // if (!req.cookies.user_id) {
+  //   const login = "loginLink";
+  //   const loginLink = login.link("http://localhost:8080/login");
+  //   const register = "registerLink";
+  //   const registerLink = register.link("http://localhost:8080/register");
+    
+    
+  //   return res.send(`Please login at ${loginLink} or at register ${registerLink}`);
 });
 
 app.get("/urls/new", (req, res) => {
@@ -117,8 +129,9 @@ app.get("/urls/:shortURL", (req, res) => {
   let templateVars = {
     user: users[req.cookies.user_id],
     shortURL: req.params.shortURL,
-    longURL: urlDatabase[req.params.shortURL]
+    longURL: urlDatabase[req.params.shortURL].longURL
   };
+  console.log(urlDatabase[req.params.shortURL].longURL)
   res.render("urls_show", templateVars);
 });
 
@@ -135,7 +148,7 @@ app.post("/urls", (req, res) => {
 });
 
 app.get("/u/:shortURL", (req, res) => {
-  const longURL = urlDatabase[req.params.shortURL];
+  const longURL = urlDatabase[req.params.shortURL].longURL;
   const shortURL = req.params.shortURL;
   if (Object.keys(urlDatabase).includes(shortURL)) {
     res.redirect(longURL);
@@ -161,3 +174,5 @@ app.post("/urls/:shortURL", (req, res) => {
 app.listen(PORT, () => {
   console.log(`TinyApp listening on port ${PORT}!`);
 });
+
+console.log(urlDatabase)
