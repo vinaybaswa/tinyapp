@@ -35,16 +35,13 @@ const users = {
   }
 };
 
+
+//Helpers
+
 //To generate random user_id
 const randomString = () => {
   return Math.random().toString(36).substring(2, 8);
 };
-
-//register
-app.get("/register", (req, res) => {
-  let templateVars = { user: users[req.cookies.user_id] };
-  res.render("register", templateVars);
-});
 
 // To check if user already exist
 const checkIfUserExist = (email, users) => {
@@ -55,6 +52,23 @@ const checkIfUserExist = (email, users) => {
   }
   return false;
 };
+
+const urlsForUser = (id) => {
+  const userUrls = {};
+  for (const url in urlDatabase) {
+    if (urlDatabase[url].userID === id) {
+      userUrls[url] = urlDatabase[url];
+    }
+  }
+  return userUrls;
+};
+
+//register
+app.get("/register", (req, res) => {
+  let templateVars = { user: users[req.cookies.user_id] };
+  res.render("register", templateVars);
+});
+
 
 app.post("/register", (req, res) => {
   if (checkIfUserExist(req.body.email, users)) {
@@ -98,13 +112,10 @@ app.post("/logout", (req, res) => {
 });
 
 app.get("/urls", (req, res) => {
-  //  if (!req.cookies.user_id) {
-  //   return res.redirect("/urls");
-  // }
-
+  const id = req.cookies.user_id;
   let templateVars = {
     user: users[req.cookies.user_id],
-    urls: urlDatabase
+    urls: urlsForUser(id)
   };
   res.render("urls_index", templateVars);
     // if (!req.cookies.user_id) {
