@@ -52,17 +52,16 @@ const checkIfUserExist = (email, users) => {
 };
 
 app.post("/register", (req, res) => {
-
   if (checkIfUserExist(req.body.email, users)) {
-    res.status(400).end();
-  } else {
-    const id = randomString();
-    const email = req.body.email;
-    const password = req.body.password;
-    users[id] = { id, email, password };
-
-    res.cookie("user_id", id).redirect("/urls");
+    return res.status(400).send("User already registered, try to login");
   }
+
+  const id = randomString();
+  const email = req.body.email;
+  const password = req.body.password;
+  users[id] = { id, email, password };
+
+  res.cookie("user_id", id).redirect("/urls");
 });
 
 app.get("/login", (req, res) => {
