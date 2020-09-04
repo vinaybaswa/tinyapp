@@ -4,6 +4,7 @@ const bcrypt = require('bcrypt');
 const express = require("express");
 const bodyParser = require("body-parser");
 const cookieSession = require('cookie-session');
+const h = require("./helpers")
 
 const app = express();
 app.set("view engine", "ejs");
@@ -14,53 +15,6 @@ app.use(cookieSession({
   keys: ['iamasuperkeyandilikesongs', 'pouet pouet yes spaces are okay why not']
 }));
 
-//URLs Data
-const urlDatabase = {
-  "b2xVn2": { longURL: "http://www.lighthouselabs.ca", userID: "userRandomID" },
-  "9sm5xK": { longURL: "http://www.google.com", userID: "user2RandomID" }
-};
-
-//Users Data
-const users = {
-  "userRandomID": {
-    id: "userRandomID",
-    email: "user@example.com",
-    password: "$2b$10$6GlcO8yQEKA.hj0DG3HR2eq5WNdEa0W.5hh4dg7ejxM.fCXSUXuh2"
-  },
-  "user2RandomID": {
-    id: "user2RandomID",
-    email: "user2@example.com",
-    password: "$2b$10$6GlcO8yQEKA.hj0DG3HR2ewSror3RLBBYg4THuTJGBlGahXPQdOtm"
-  }
-};
-
-//Helpers
-
-//To generate random user_id
-const randomString = () => {
-  return Math.random().toString(36).substring(2, 8);
-};
-
-// To check if user already exist
-const userCheck = (email, users) => {
-  for (const user in users) {
-    if (users[user].email === email) {
-      return true;
-    }
-  }
-  return false;
-};
-
-const urlsForUser = (id) => {
-  const userUrls = {};
-  for (const url in urlDatabase) {
-    if (urlDatabase[url].userID === id) {
-      userUrls[url] = urlDatabase[url];
-    }
-  }
-  return userUrls;
-};
-
 //register
 app.get("/register", (req, res) => {
   let templateVars = { user: users[req.session.user_id] };
@@ -68,16 +22,16 @@ app.get("/register", (req, res) => {
 });
 
 app.post("/register", (req, res) => {
-  if (userCheck(req.body.email, users)) {
+  const email = req.body.email;
+  if (h.getUserByEmail(email, users)) {
     return res.status(400).send("User already registered, try to login");
   } else if (!req.body.email || !req.body.password) {
     return res.status(400).send("Email or password Missing");
   }
-  const id = randomString();
-  const email = req.body.email;
+  const id = h.randomString();
   const password = bcrypt.hashSync(req.body.password, 10);
   users[id] = { id, email, password };
-  req.session.user_id = users[id].id;
+  req.session.user_id = id;
   res.redirect("/urls");
 });
 
@@ -90,19 +44,17 @@ app.get("/login", (req, res) => {
 app.post("/login", (req, res) => {
   const email = req.body.email;
   const password = req.body.password;
-  let userid = "";
-  for (const user in users) {
-    if (users[user].email === email) {
-      userid = users[user].id;
-      if (bcrypt.compareSync(password, users[user].password)) {
-        req.session.user_id = userid;
-        return res.redirect("/urls");
-      } else {
-        return res.status(403).send("Wrong Password");
-      }
+  const user = h.getUserByEmail(email, users);
+  if(user !== undefined) {
+    if (bcrypt.compareSync(password, users[user].password)) {
+      req.session.user_id = user;
+      return res.redirect("/urls");
+    } else {
+      return res.status(403).send("Wrong Password");
     }
+  } else {
+    res.status(403).send("User Not Found");
   }
-  res.status(403).send("User Not Found");
 });
 
 //Logout
@@ -115,7 +67,7 @@ app.post("/logout", (req, res) => {
 app.get("/urls", (req, res) => {
   let templateVars = {
     user: users[req.session.user_id],
-    urls: urlsForUser(req.session.user_id)
+    urls: h.urlsForUser(req.session.user_id, urlDatabase)
   };
   res.render("urls_index", templateVars);
 });
@@ -137,17 +89,16 @@ app.get("/urls/:shortURL", (req, res) => {
   let templateVars = {
     user: users[req.session.user_id],
     userID: urlDatabase[req.params.shortURL].userID,
-    urls: urlsForUser(req.session.user_id),
+    urls: h.urlsForUser(req.session.user_id, urlDatabase),
     shortURL: req.params.shortURL,
     longURL: urlDatabase[req.params.shortURL].longURL
   };
   res.render("urls_show", templateVars);
 });
 
-
 //Create new URL
 app.post("/urls", (req, res) => {
-  const Id = randomString();
+  const Id = h.randomString();
   const userID = req.session.user_id;
   if (req.body.longURL.match(/^(https:\/\/|http:\/\/)/)) {
     const longURL = req.body.longURL;
