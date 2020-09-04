@@ -4,7 +4,8 @@ const bcrypt = require('bcrypt');
 const express = require("express");
 const bodyParser = require("body-parser");
 const cookieSession = require('cookie-session');
-const h = require("./helpers")
+const { urlDatabase, users } = require("./database/database");
+const h = require("./helpers");
 
 const app = express();
 app.set("view engine", "ejs");
@@ -45,7 +46,7 @@ app.post("/login", (req, res) => {
   const email = req.body.email;
   const password = req.body.password;
   const user = h.getUserByEmail(email, users);
-  if(user !== undefined) {
+  if (user !== undefined) {
     if (bcrypt.compareSync(password, users[user].password)) {
       req.session.user_id = user;
       return res.redirect("/urls");
